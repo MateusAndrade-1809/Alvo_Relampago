@@ -7,6 +7,8 @@ Na Semana 3, o prototipo da Semana 2 foi melhorado com regras de partida mais co
 ## Funcionalidades
 
 - Tempo limite de 30 segundos.
+- Tela inicial com botao Iniciar.
+- Descricao breve explicando que o jogador deve clicar no alvo e fazer a maior pontuacao possivel.
 - Derrota ao perder todas as vidas.
 - Derrota quando o tempo acaba.
 - Pontuacao aumentada para 5 pontos por acerto.
@@ -20,11 +22,12 @@ Na Semana 3, o prototipo da Semana 2 foi melhorado com regras de partida mais co
 ## Como testar manualmente
 
 1. Execute `python main.py`.
-2. Clique no alvo vermelho para ganhar pontos.
-3. Clique fora do alvo para perder vidas.
-4. Tente fazer a maior pontuacao possivel antes do tempo acabar.
-5. Quando a partida terminar, pressione ESPACO para reiniciar.
-6. Pressione ESC para sair.
+2. Clique no botao Iniciar.
+3. Clique no alvo vermelho para ganhar pontos.
+4. Clique fora do alvo para perder vidas.
+5. Tente fazer a maior pontuacao possivel antes do tempo acabar.
+6. Quando a partida terminar, pressione ESPACO para reiniciar.
+7. Pressione ESC para sair.
 
 ## Niveis
 

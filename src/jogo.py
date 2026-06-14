@@ -54,6 +54,18 @@ def desenhar_alvo(tela, alvo_x, alvo_y):
     pygame.draw.circle(tela, VERMELHO, (alvo_x, alvo_y), 9)
 
 
+def desenhar_tela_inicial(tela, fonte_grande, fonte, botao_iniciar):
+    """Desenha a tela inicial com o botao de iniciar."""
+    desenhar_texto(tela, fonte_grande, "Alvo Relampago", VERMELHO_ESCURO, 235, 140)
+
+    pygame.draw.rect(tela, AZUL, botao_iniciar)
+    pygame.draw.rect(tela, PRETO, botao_iniciar, 3)
+    desenhar_texto(tela, fonte, "Iniciar", BRANCO, 360, 268)
+
+    desenhar_texto(tela, fonte, "Clique no alvo ate o tempo acabar.", PRETO, 205, 360)
+    desenhar_texto(tela, fonte, "Tente conseguir o maximo de pontuacao possivel.", PRETO, 135, 400)
+
+
 def desenhar_informacoes(tela, fonte, pontos, vidas, tempo_restante, recorde):
     """Desenha pontuacao, vidas, tempo, recorde e nivel."""
     nivel = calcular_nivel(pontos)
@@ -111,14 +123,23 @@ def executar_jogo():
     fonte_grande = pygame.font.SysFont("arial", 48, bold=True)
 
     recorde = carregar_recorde(CAMINHO_RECORDE)
-    pontos, vidas, alvo_x, alvo_y, inicio, jogando, mensagem = reiniciar_partida()
+    pontos = 0
+    vidas = VIDAS_INICIAIS
+    alvo_x, alvo_y = criar_alvo()
+    inicio = 0
+    jogando = False
+    mensagem = ""
+    tempo_restante = TEMPO_LIMITE
+    tela_inicial = True
+    botao_iniciar = pygame.Rect(300, 250, 200, 70)
     rodando = True
 
     while rodando:
         relogio.tick(FPS)
 
-        segundos_passados = (pygame.time.get_ticks() - inicio) // 1000
-        tempo_restante = calcular_tempo_restante(TEMPO_LIMITE, segundos_passados)
+        if jogando:
+            segundos_passados = (pygame.time.get_ticks() - inicio) // 1000
+            tempo_restante = calcular_tempo_restante(TEMPO_LIMITE, segundos_passados)
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -128,17 +149,26 @@ def executar_jogo():
                 if evento.key == pygame.K_ESCAPE:
                     rodando = False
 
-                if evento.key == pygame.K_SPACE and not jogando:
+                if evento.key == pygame.K_SPACE and tela_inicial:
+                    pontos, vidas, alvo_x, alvo_y, inicio, jogando, mensagem = reiniciar_partida()
+                    tela_inicial = False
+
+                if evento.key == pygame.K_SPACE and not jogando and not tela_inicial:
                     pontos, vidas, alvo_x, alvo_y, inicio, jogando, mensagem = reiniciar_partida()
 
-            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1 and jogando:
-                acertou = clique_acertou_alvo(evento.pos, (alvo_x, alvo_y), RAIO_ALVO)
+            if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+                if tela_inicial and botao_iniciar.collidepoint(evento.pos):
+                    pontos, vidas, alvo_x, alvo_y, inicio, jogando, mensagem = reiniciar_partida()
+                    tela_inicial = False
 
-                if acertou:
-                    pontos = calcular_pontos(pontos, PONTOS_POR_ACERTO)
-                    alvo_x, alvo_y = criar_alvo()
-                else:
-                    vidas = tomar_dano(vidas, 1)
+                elif jogando:
+                    acertou = clique_acertou_alvo(evento.pos, (alvo_x, alvo_y), RAIO_ALVO)
+
+                    if acertou:
+                        pontos = calcular_pontos(pontos, PONTOS_POR_ACERTO)
+                        alvo_x, alvo_y = criar_alvo()
+                    else:
+                        vidas = tomar_dano(vidas, 1)
 
         if jogando:
             jogando, mensagem = verificar_fim_da_partida(pontos, vidas, tempo_restante)
@@ -149,12 +179,16 @@ def executar_jogo():
                 salvar_recorde(CAMINHO_RECORDE, recorde)
 
         tela.fill(CINZA)
-        desenhar_informacoes(tela, fonte, pontos, vidas, tempo_restante, recorde)
 
-        if jogando:
-            desenhar_alvo(tela, alvo_x, alvo_y)
+        if tela_inicial:
+            desenhar_tela_inicial(tela, fonte_grande, fonte, botao_iniciar)
         else:
-            desenhar_tela_final(tela, fonte_grande, fonte, mensagem, pontos)
+            desenhar_informacoes(tela, fonte, pontos, vidas, tempo_restante, recorde)
+
+            if jogando:
+                desenhar_alvo(tela, alvo_x, alvo_y)
+            else:
+                desenhar_tela_final(tela, fonte_grande, fonte, mensagem, pontos)
 
         pygame.display.flip()
 

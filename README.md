@@ -40,8 +40,9 @@ O objetivo e fazer a maior pontuacao possivel antes que o tempo acabe ou antes d
 
 ## Controles
 
+- Botao Iniciar: comeca a partida.
 - Mouse: clicar no alvo.
-- Espaco: reiniciar depois do fim da partida.
+- Espaco: iniciar ou reiniciar depois do fim da partida.
 - ESC: sair do jogo.
 
 ## Estrutura do projeto
@@ -72,6 +73,7 @@ python -m pytest
 
 - Janela do Pygame funcionando.
 - Loop principal funcionando.
+- Tela inicial com botao Iniciar e descricao do jogo.
 - Alvo clicavel aparecendo na tela.
 - Pontuacao e vidas funcionando.
 - Tempo limite funcionando.
