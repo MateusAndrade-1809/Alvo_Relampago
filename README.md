@@ -5,9 +5,10 @@ Projeto final da disciplina de Introducao a Algoritmos/Programacao, desenvolvido
 ## Integrantes do grupo
 
 - Daniel Viana
-- Rodrigo
+- Rodrigo Ventura
 - Luiz Moura
 - Mateus Andrade
+- Arthur Ramos
 
 ## Descricao do jogo
 
