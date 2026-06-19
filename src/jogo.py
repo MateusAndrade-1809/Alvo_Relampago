@@ -78,7 +78,7 @@ def desenhar_informacoes(tela, fonte, pontos, vidas, tempo_restante, recorde):
 
 
 def desenhar_tela_final(tela, fonte_grande, fonte, mensagem, pontos):
-    """Mostra a tela de vitoria ou derrota."""
+    """Mostra a tela final da partida."""
     nivel = calcular_nivel(pontos)
 
     desenhar_texto(tela, fonte_grande, mensagem, VERMELHO_ESCURO, 250, 235)

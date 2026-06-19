@@ -13,7 +13,7 @@ Projeto final da disciplina de Introducao a Algoritmos/Programacao, desenvolvido
 
 Alvo Relampago e um jogo simples de clique rapido. Um alvo circular aparece em uma posicao aleatoria da tela, e o jogador deve clicar nele para ganhar pontos. Quando o jogador erra o alvo, perde uma vida.
 
-Na Semana 3, o jogo ganhou tempo limite, sistema de niveis, condicao de derrota e recorde salvo em arquivo.
+O jogo tem tela inicial, tempo limite, sistema de pontuacao, vidas, niveis por desempenho, recorde salvo em arquivo e tela final.
 
 ## Objetivo do jogador
 
@@ -25,8 +25,8 @@ O objetivo e fazer a maior pontuacao possivel antes que o tempo acabe ou antes d
 - Cada clique correto no alvo aumenta 5 pontos.
 - Cada clique fora do alvo remove 1 vida.
 - Depois de um acerto, o alvo muda para uma nova posicao aleatoria.
-- O jogador perde se as vidas chegarem a zero.
-- O jogador tambem perde se o tempo acabar.
+- A partida termina quando as vidas chegam a zero.
+- A partida tambem termina quando o tempo acaba.
 - O jogo mostra o nivel do jogador de acordo com a pontuacao.
 - O maior recorde fica salvo em `data/recorde.txt`.
 
@@ -54,6 +54,8 @@ O objetivo e fazer a maior pontuacao possivel antes que o tempo acabe ou antes d
 - `src/jogo.py`: janela, loop principal e desenho do jogo.
 - `tests/`: testes unitarios.
 - `docs/`: documentacao do projeto.
+- `assets/`: arquivos de assets e referencias.
+- `data/`: arquivos auxiliares de dados.
 
 ## Como executar o projeto
 
@@ -69,17 +71,21 @@ python main.py
 python -m pytest
 ```
 
-## Entrega da Semana 3
+## Arquivos importantes
 
-- Janela do Pygame funcionando.
-- Loop principal funcionando.
-- Tela inicial com botao Iniciar e descricao do jogo.
-- Alvo clicavel aparecendo na tela.
-- Pontuacao e vidas funcionando.
-- Tempo limite funcionando.
-- Tela final com resultado e nivel do jogador.
-- Reinicio da partida com ESPACO.
-- Saida do jogo com ESC.
-- Recorde salvo em arquivo.
-- Codigo organizado em funcoes simples.
-- Testes automatizados para a logica principal.
+- `docs/proposta.md`: proposta inicial do jogo.
+- `docs/semana3.md`: resumo das funcionalidades criadas ate a Semana 3.
+- `docs/apresentacao.md`: roteiro para apresentacao em sala.
+- `assets/REFERENCIAS.md`: referencias e observacoes sobre assets externos.
+- `data/recorde.txt`: arquivo usado para salvar o recorde.
+
+## Entrega final
+
+- Jogo completo e executavel.
+- Codigo-fonte organizado em modulos.
+- README preenchido.
+- Proposta inicial em `docs/proposta.md`.
+- Testes implementados.
+- Arquivos auxiliares em `data/`.
+- Referencias de assets em `assets/REFERENCIAS.md`.
+- Roteiro de apresentacao em `docs/apresentacao.md`.
