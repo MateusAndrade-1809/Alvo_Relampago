@@ -28,7 +28,7 @@ O objetivo e fazer a maior pontuacao possivel antes que o tempo acabe ou antes d
 - A partida termina quando as vidas chegam a zero.
 - A partida tambem termina quando o tempo acaba.
 - O jogo mostra o nivel do jogador de acordo com a pontuacao.
-- O maior recorde fica salvo em `data/recorde.txt`.
+- O maior recorde fica salvo localmente em `data/recorde.txt`, no formato `Recorde: 100 pontos`.
 
 ## Niveis de pontuacao
 
@@ -77,7 +77,7 @@ python -m pytest
 - `docs/semana3.md`: resumo das funcionalidades criadas ate a Semana 3.
 - `docs/apresentacao.md`: roteiro para apresentacao em sala.
 - `assets/REFERENCIAS.md`: referencias e observacoes sobre assets externos.
-- `data/recorde.txt`: arquivo usado para salvar o recorde.
+- `data/recorde.txt`: arquivo local usado para salvar o recorde, por exemplo `Recorde: 100 pontos`.
 
 ## Entrega final
 

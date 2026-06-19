@@ -73,7 +73,7 @@ def desenhar_informacoes(tela, fonte, pontos, vidas, tempo_restante, recorde):
     desenhar_texto(tela, fonte, "Pontos: " + str(pontos), PRETO, 20, 20)
     desenhar_texto(tela, fonte, "Vidas: " + str(vidas), PRETO, 190, 20)
     desenhar_texto(tela, fonte, "Tempo: " + str(tempo_restante), PRETO, 330, 20)
-    desenhar_texto(tela, fonte, "Recorde: " + str(recorde), PRETO, 500, 20)
+    desenhar_texto(tela, fonte, "Recorde: " + str(recorde) + " pontos", PRETO, 500, 20)
     desenhar_texto(tela, fonte, "Nivel: " + nivel, AZUL, 20, 55)
 
 

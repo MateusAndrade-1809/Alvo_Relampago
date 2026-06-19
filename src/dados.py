@@ -1,7 +1,7 @@
 def salvar_recorde(caminho_arquivo, pontuacao):
     """Salva o recorde em um arquivo de texto."""
     with open(caminho_arquivo, "w", encoding="utf-8") as arquivo:
-        arquivo.write(str(pontuacao))
+        arquivo.write("Recorde: " + str(pontuacao) + " pontos")
 
 
 def carregar_recorde(caminho_arquivo):
@@ -12,6 +12,11 @@ def carregar_recorde(caminho_arquivo):
 
             if conteudo == "":
                 return 0
+
+            conteudo = conteudo.replace("Recorde:", "")
+            conteudo = conteudo.replace("recorde:", "")
+            conteudo = conteudo.replace("pontos", "")
+            conteudo = conteudo.strip()
 
             return int(conteudo)
     except FileNotFoundError:

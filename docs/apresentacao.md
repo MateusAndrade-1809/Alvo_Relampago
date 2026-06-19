@@ -26,7 +26,7 @@ Fazer a maior pontuacao possivel antes do tempo acabar ou antes de perder todas 
 - Cada acerto vale 5 pontos.
 - Cada erro tira 1 vida.
 - O tempo limite e de 30 segundos.
-- O recorde fica salvo em arquivo.
+- O recorde fica salvo localmente em `data/recorde.txt`, por exemplo `Recorde: 100 pontos`.
 
 ## 6. Niveis
 

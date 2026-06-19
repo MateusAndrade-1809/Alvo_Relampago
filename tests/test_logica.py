@@ -84,4 +84,12 @@ def test_salvar_e_carregar_recorde(tmp_path):
 
     salvar_recorde(arquivo, 15)
 
+    assert arquivo.read_text(encoding="utf-8") == "Recorde: 15 pontos"
     assert carregar_recorde(arquivo) == 15
+
+
+def test_carregar_recorde_antigo_apenas_com_numero(tmp_path):
+    arquivo = tmp_path / "recorde.txt"
+    arquivo.write_text("20", encoding="utf-8")
+
+    assert carregar_recorde(arquivo) == 20
