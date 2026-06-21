@@ -6,7 +6,7 @@ Alvo Relampago.
 
 ## Integrantes do grupo
 
-Daniel Viana, Rodrigo, Luiz Moura e Mateus Andrade.
+Daniel Viana, Rodrigo, Arthur Ramos, Luiz Moura e Mateus Andrade.
 
 ## Tipo de jogo
 
