@@ -53,10 +53,13 @@ from src.exibicao import (
     proximo_modo,
 )
 from src.funcoes import (
+    atualizar_combo,
     atualizar_recorde,
     alvo_expirou,
+    calcular_multiplicador_combo,
     calcular_nivel,
     calcular_pontos,
+    calcular_pontos_combo,
     calcular_tempo_restante,
     clique_acertou_alvo,
     criar_posicao_item,
@@ -262,6 +265,15 @@ def desenhar_informacoes(tela, fonte, fonte_tempo, estado, recorde):
     )
     desenhar_texto(tela, fonte, f"Recorde: {recorde} pts", PRETO, 500, 20)
     desenhar_texto(tela, fonte, f"Nivel: {nivel} | Fase: {fase}", AZUL, 20, 55)
+    multiplicador = calcular_multiplicador_combo(estado.combo)
+    desenhar_texto(
+        tela,
+        fonte,
+        f"Combo: {estado.combo} (x{multiplicador})",
+        LARANJA,
+        535,
+        55,
+    )
 
 
 def desenhar_ranking(tela, fonte_pequena, ranking, y_inicial):
@@ -308,7 +320,10 @@ def desenhar_tela_final(tela, fonte_grande, fonte, fonte_pequena, estado, rankin
     desenhar_texto_centralizado(
         tela,
         fonte_pequena,
-        f"Nivel final: {calcular_nivel(estado.pontos)}",
+        (
+            f"Nivel final: {calcular_nivel(estado.pontos)} | "
+            f"Maior combo: {estado.maior_combo}"
+        ),
         AZUL,
         279,
     )
@@ -320,6 +335,8 @@ def desenhar_tela_final(tela, fonte_grande, fonte, fonte_pequena, estado, rankin
 
 def reiniciar_partida(estado, agora):
     estado.pontos = 0
+    estado.combo = 0
+    estado.maior_combo = 0
     estado.vidas = VIDAS_INICIAIS
     estado.tempo_restante = TEMPO_LIMITE
     estado.inicio = agora
@@ -465,6 +482,7 @@ def atualizar_movimento_alvo(estado, delta_segundos):
 def atualizar_alvo_expirado(estado, agora):
     duracao = obter_dificuldade(estado.pontos)["duracao_alvo"]
     if alvo_expirou(estado.alvo.surgiu_em, agora, duracao):
+        estado.combo = atualizar_combo(estado.combo, False)
         estado.vidas = tomar_dano(estado.vidas, 1)
         estado.estatisticas.alvos_perdidos += 1
         estado.flash_ate = agora + 180
@@ -514,12 +532,16 @@ def processar_clique(estado, posicao, agora):
     elif clique_acertou_alvo(
         posicao, (estado.alvo.x, estado.alvo.y), raio_alvo
     ):
-        pontos_ganhos = obter_pontos_alvo(estado.alvo.tamanho)
+        estado.combo = atualizar_combo(estado.combo, True)
+        estado.maior_combo = max(estado.maior_combo, estado.combo)
+        pontos_base = obter_pontos_alvo(estado.alvo.tamanho)
+        pontos_ganhos = calcular_pontos_combo(pontos_base, estado.combo)
+        multiplicador = calcular_multiplicador_combo(estado.combo)
         estado.pontos = calcular_pontos(estado.pontos, pontos_ganhos)
         estado.estatisticas.acertos += 1
         adicionar_feedback(
             estado,
-            f"+{pontos_ganhos}",
+            f"+{pontos_ganhos} (x{multiplicador})",
             estado.alvo.x,
             estado.alvo.y,
             VERDE,
@@ -528,6 +550,7 @@ def processar_clique(estado, posicao, agora):
         criar_novo_alvo(estado, agora)
         return "acerto"
     else:
+        estado.combo = atualizar_combo(estado.combo, False)
         estado.vidas = tomar_dano(estado.vidas, 1)
         estado.estatisticas.erros += 1
         estado.flash_ate = agora + 180

@@ -1,8 +1,11 @@
 from src.dados import carregar_recorde, salvar_recorde
 from src.funcoes import (
+    atualizar_combo,
     atualizar_recorde,
+    calcular_multiplicador_combo,
     calcular_nivel,
     calcular_pontos,
+    calcular_pontos_combo,
     calcular_tempo_restante,
     clique_acertou_alvo,
     jogador_perdeu,
@@ -13,6 +16,22 @@ from src.funcoes import (
 
 def test_calcular_pontos():
     assert calcular_pontos(10, 5) == 15
+
+
+def test_combo_aumenta_com_acerto_e_zerar_com_erro():
+    assert atualizar_combo(2, True) == 3
+    assert atualizar_combo(3, False) == 0
+
+
+def test_multiplicador_combo_aumenta_a_cada_tres_acertos():
+    assert calcular_multiplicador_combo(2) == 1
+    assert calcular_multiplicador_combo(3) == 2
+    assert calcular_multiplicador_combo(12) == 5
+    assert calcular_multiplicador_combo(30) == 5
+
+
+def test_calcular_pontos_combo():
+    assert calcular_pontos_combo(5, 6) == 15
 
 
 def test_tomar_dano():

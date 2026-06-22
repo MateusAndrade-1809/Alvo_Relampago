@@ -8,11 +8,13 @@ from src.dados import (
 from src.estado import Alvo, EstadoJogo, Estatisticas, ItemEspecial
 from src.funcoes import (
     alvo_expirou,
+    calcular_pontos_combo,
     calcular_tempo_restante,
     curar_vida,
     elementos_sobrepostos,
     item_expirou,
     obter_dificuldade,
+    obter_pontos_alvo,
     obter_raio_alvo,
     posicao_esta_livre,
 )
@@ -70,14 +72,38 @@ def test_itens_e_alvos_expiram_no_tempo_configurado():
 
 
 def test_alvo_expirado_remove_vida_e_registra_estatistica():
-    estado = EstadoJogo()
+    estado = EstadoJogo(combo=4)
     estado.alvo = Alvo(x=300, y=300, tamanho="medio", surgiu_em=0)
 
     expirou = atualizar_alvo_expirado(estado, agora=3000)
 
     assert expirou is True
     assert estado.vidas == 2
+    assert estado.combo == 0
     assert estado.estatisticas.alvos_perdidos == 1
+
+
+def test_combo_multiplica_pontos_e_erro_encerra_sequencia():
+    estado = EstadoJogo()
+    estado.alvo = Alvo(x=300, y=300, tamanho="medio", surgiu_em=0)
+    pontos_esperados = 0
+
+    for combo_esperado in range(1, 4):
+        pontos_base = obter_pontos_alvo(estado.alvo.tamanho)
+        pontos_esperados += calcular_pontos_combo(pontos_base, combo_esperado)
+        resultado = processar_clique(
+            estado, (estado.alvo.x, estado.alvo.y), agora=combo_esperado * 100
+        )
+
+        assert resultado == "acerto"
+        assert estado.combo == combo_esperado
+
+    assert estado.pontos == pontos_esperados
+    assert estado.maior_combo == 3
+
+    assert processar_clique(estado, (0, 0), agora=500) == "erro"
+    assert estado.combo == 0
+    assert estado.maior_combo == 3
 
 
 def test_ampulheta_funciona_no_ultimo_segundo():

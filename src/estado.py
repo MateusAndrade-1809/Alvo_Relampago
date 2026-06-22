@@ -68,6 +68,8 @@ class MensagemFlutuante:
 class EstadoJogo:
     nome_jogador: str = ""
     pontos: int = 0
+    combo: int = 0
+    maior_combo: int = 0
     vidas: int = VIDAS_INICIAIS
     tempo_restante: int = TEMPO_LIMITE
     inicio: int = 0

@@ -1,11 +1,13 @@
 import random
 
 from src.config import (
+    ACERTOS_POR_MULTIPLICADOR,
     ALTURA_TELA,
     ALTURA_HUD,
     FASES_DIFICULDADE,
     LARGURA_TELA,
     MARGEM_ENTRE_ELEMENTOS,
+    MULTIPLICADOR_COMBO_MAXIMO,
     RAIO_ITEM,
     TAMANHOS_ALVO,
     VIDAS_MAXIMAS,
@@ -15,6 +17,24 @@ from src.config import (
 def calcular_pontos(pontos_atual, pontos_ganhos):
     """Soma os pontos ganhos com a pontuacao atual."""
     return pontos_atual + pontos_ganhos
+
+
+def atualizar_combo(combo_atual, acertou):
+    """Aumenta o combo em um acerto ou o reinicia depois de um erro."""
+    if acertou:
+        return combo_atual + 1
+    return 0
+
+
+def calcular_multiplicador_combo(combo):
+    """Aumenta o multiplicador a cada sequencia de tres acertos."""
+    multiplicador = 1 + combo // ACERTOS_POR_MULTIPLICADOR
+    return min(multiplicador, MULTIPLICADOR_COMBO_MAXIMO)
+
+
+def calcular_pontos_combo(pontos_base, combo):
+    """Aplica o multiplicador do combo aos pontos do alvo."""
+    return pontos_base * calcular_multiplicador_combo(combo)
 
 
 def tomar_dano(vidas, dano):
