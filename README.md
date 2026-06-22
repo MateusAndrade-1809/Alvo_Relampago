@@ -19,7 +19,7 @@ a pontuação aumenta, os alvos ficam menores, passam a se mover e permanecem
 menos tempo na tela.
 
 O jogo possui cadastro e seleção de jogadores, ranking Top 5, recorde local,
-itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
+combo, itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
 
 ## Regras
 
@@ -31,6 +31,8 @@ itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
 - O coração recupera uma vida, respeitando o limite de 3.
 - A ampulheta adiciona 5 segundos ao tempo restante.
 - Alvos e itens nunca são criados sobrepostos.
+- Cada sequência de 3 acertos aumenta o multiplicador do combo, até o limite de 5.
+- Clicar fora do alvo ou deixá-lo desaparecer zera o combo.
 
 ## Pontuação dos alvos
 
@@ -40,6 +42,12 @@ itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
 | Médio | 5 |
 | Pequeno | 8 |
 | Mínimo | 12 |
+
+## Sistema de combo
+
+Os acertos consecutivos formam um combo. A cada 3 acertos, o multiplicador de
+pontos aumenta em 1, até o máximo de 5. O combo atual aparece durante a partida
+e o maior combo alcançado é mostrado na tela final.
 
 ## Dificuldade progressiva
 
@@ -83,6 +91,7 @@ mostra:
 - itens coletados;
 - tempo jogado;
 - nível final;
+- maior combo;
 - ranking Top 5.
 
 ## Como executar

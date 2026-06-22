@@ -1,62 +1,61 @@
-# Semana 4 – Evolução do Projeto
+# Semana 4 - Evolução do Projeto
 
-## Funcionalidades Implementadas
+## Funcionalidades implementadas
 
-Durante a Semana 4 foram adicionadas novas mecânicas ao jogo **Alvo Relâmpago**
+Durante a Semana 4 foram adicionadas novas mecânicas ao jogo **Alvo Relâmpago**.
 
-### 1. Item de Vida (Coração)
+### 1. Item de vida (coração)
 
-Foi implementado um item especial representado por um coração.
+- O coração aparece aleatoriamente durante a partida.
+- Ao clicar nele, o jogador recupera uma vida.
+- O número máximo de vidas permanece limitado a 3.
+- O item desaparece automaticamente após alguns segundos caso não seja coletado.
 
-* O coração aparece aleatoriamente durante a partida.
-* Ao clicar nele, o jogador recupera uma vida.
-* O número máximo de vidas permanece limitado a 3.
-* Caso o jogador já esteja com 3 vidas, o coração não aumenta esse valor.
-* O item desaparece automaticamente após alguns segundos caso não seja coletado.
+### 2. Alvos e dificuldade progressiva
 
-Essa funcionalidade adiciona uma nova estratégia ao jogo, permitindo que o jogador recupere vidas perdidas.
+- Novos tamanhos de alvo são liberados conforme a pontuação aumenta.
+- Alvos menores exigem mais precisão e valem mais pontos.
+- Nas fases avançadas, os alvos se movimentam e desaparecem mais rapidamente.
+- Alvos e itens são posicionados sem sobreposição dentro da área visível.
 
----
+### 3. Item de tempo (ampulheta)
 
-### 2. Alvos com Diferentes Tamanhos
+- A ampulheta aparece aleatoriamente durante a partida.
+- Ao clicar nela, o jogador recebe um bônus de 5 segundos.
+- O item desaparece automaticamente após alguns segundos caso não seja coletado.
+- Depois de desaparecer ou ser utilizado, ele pode surgir novamente.
 
-Foi implementado um sistema de variação de tamanho dos alvos.
+### 4. Cadastro e seleção de jogadores
 
-* Após o jogador atingir uma determinada quantidade de pontos, novos tamanhos de alvo passam a ser gerados.
-* Os alvos podem aparecer em tamanhos diferentes, aumentando a diversidade das partidas.
-* Alvos menores exigem maior precisão do jogador.
-* O sistema mantém o posicionamento correto dos alvos dentro da área visível da tela.
+- O jogador pode digitar um nome antes de começar.
+- Nomes presentes no ranking podem ser selecionados na tela inicial.
+- A partida e suas estatísticas ficam associadas ao jogador escolhido.
 
-Essa melhoria aumenta progressivamente a dificuldade do jogo.
+### 5. Ranking de pontuações
 
----
+- As cinco melhores pontuações ficam salvas em `data/ranking.txt`.
+- O ranking é ordenado da maior para a menor pontuação.
+- As melhores colocações aparecem nas telas inicial e final.
 
-### 3. Item de Tempo (Ampulheta)
+### 6. Sistema de combo
 
-Foi adicionado um item especial representado por uma ampulheta.
+- Cada acerto consecutivo aumenta o combo.
+- A cada 3 acertos, o multiplicador de pontos aumenta em 1.
+- O multiplicador máximo é 5.
+- Um clique errado ou um alvo perdido zera o combo.
+- O combo atual aparece durante a partida e o maior combo aparece na tela final.
 
-* A ampulheta surge aleatoriamente durante a partida.
-* Ao clicar nela, o jogador recebe um bônus de +5 segundos no tempo restante.
-* O item desaparece automaticamente após alguns segundos caso não seja coletado.
-* Após desaparecer ou ser utilizado, uma nova ampulheta pode surgir posteriormente.
+## Outras melhorias concluídas
 
-Essa mecânica oferece ao jogador a possibilidade de prolongar a partida e alcançar pontuações maiores.
+- Feedback visual e sonoro para acertos, erros e itens.
+- Estatísticas de precisão, alvos perdidos, itens coletados e tempo jogado.
+- Modos de janela, janela cheia e tela cheia.
+- Testes automatizados para as regras e os fluxos principais.
 
----
+## Benefícios das melhorias
 
-## Benefícios das Melhorias
-
-As funcionalidades implementadas nesta etapa contribuíram para:
-
-* Tornar a jogabilidade mais dinâmica.
-* Aumentar a variedade das partidas.
-* Criar um sistema de progressão de dificuldade.
-* Melhorar a experiência geral do jogador.
-
-## Próximos Passos
-
-As ideias de cadastro e seleção de jogadores e ranking de pontuações foram
-implementadas na evolução seguinte do projeto.
-
-O sistema de combo permanece apenas como uma possibilidade futura e não faz
-parte da versão atual.
+- Jogabilidade mais dinâmica e variada.
+- Progressão de dificuldade e recompensa por precisão.
+- Partidas identificadas por jogador.
+- Competição por meio de um ranking persistente.
+- Incentivo a sequências de acertos com o sistema de combo.
