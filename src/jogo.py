@@ -42,6 +42,16 @@ from src.dados import (
     salvar_recorde,
 )
 from src.estado import Alvo, EstadoJogo, Estatisticas, MensagemFlutuante
+from src.exibicao import (
+    MODO_JANELA,
+    MODO_TELA_CHEIA,
+    MODOS_EXIBICAO,
+    NOMES_MODOS,
+    apresentar_quadro,
+    converter_posicao_mouse,
+    criar_janela,
+    proximo_modo,
+)
 from src.funcoes import (
     atualizar_recorde,
     alvo_expirou,
@@ -147,6 +157,30 @@ def criar_botoes_jogadores(ranking):
     return botoes
 
 
+def criar_botoes_modos():
+    """Cria os tres botoes de modo de exibicao da tela inicial."""
+    largura = 145
+    altura = 34
+    espacamento = 10
+    largura_total = len(MODOS_EXIBICAO) * largura + (
+        len(MODOS_EXIBICAO) - 1
+    ) * espacamento
+    inicio_x = (LARGURA_TELA - largura_total) // 2
+
+    return [
+        (
+            pygame.Rect(
+                inicio_x + indice * (largura + espacamento),
+                18,
+                largura,
+                altura,
+            ),
+            modo,
+        )
+        for indice, modo in enumerate(MODOS_EXIBICAO)
+    ]
+
+
 def desenhar_tela_inicial(
     tela,
     fonte_grande,
@@ -156,7 +190,18 @@ def desenhar_tela_inicial(
     campo_nome,
     nome_jogador,
     botoes_jogadores,
+    botoes_modos,
+    modo_exibicao,
 ):
+    for retangulo, modo in botoes_modos:
+        selecionado = modo == modo_exibicao
+        cor_fundo = AZUL if selecionado else BRANCO
+        cor_texto = BRANCO if selecionado else PRETO
+        pygame.draw.rect(tela, cor_fundo, retangulo, border_radius=6)
+        pygame.draw.rect(tela, AZUL, retangulo, 2, border_radius=6)
+        imagem = fonte_pequena.render(NOMES_MODOS[modo], True, cor_texto)
+        tela.blit(imagem, imagem.get_rect(center=retangulo.center))
+
     desenhar_texto_centralizado(
         tela, fonte_grande, "Alvo Relampago", VERMELHO_ESCURO, 80
     )
@@ -494,7 +539,10 @@ def processar_clique(estado, posicao, agora):
 
 def executar_jogo():
     pygame.init()
-    tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
+    modo_exibicao = MODO_JANELA
+    modo_antes_tela_cheia = MODO_JANELA
+    janela = criar_janela(modo_exibicao)
+    tela = pygame.Surface((LARGURA_TELA, ALTURA_TELA))
     pygame.display.set_caption(TITULO_JOGO)
     relogio = pygame.time.Clock()
     fonte = pygame.font.SysFont("arial", 28)
@@ -540,7 +588,21 @@ def executar_jogo():
             if evento.type == pygame.QUIT:
                 rodando = False
             elif evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_ESCAPE:
+                if evento.key == pygame.K_F11:
+                    modo_exibicao = proximo_modo(modo_exibicao)
+                    if modo_exibicao != MODO_TELA_CHEIA:
+                        modo_antes_tela_cheia = modo_exibicao
+                    janela = criar_janela(modo_exibicao)
+                elif evento.key == pygame.K_RETURN and (
+                    evento.mod & pygame.KMOD_ALT
+                ):
+                    if modo_exibicao == MODO_TELA_CHEIA:
+                        modo_exibicao = modo_antes_tela_cheia
+                    else:
+                        modo_antes_tela_cheia = modo_exibicao
+                        modo_exibicao = MODO_TELA_CHEIA
+                    janela = criar_janela(modo_exibicao)
+                elif evento.key == pygame.K_ESCAPE:
                     rodando = False
                 elif estado.tela == "inicio":
                     if evento.key == pygame.K_RETURN:
@@ -556,16 +618,36 @@ def executar_jogo():
                 elif evento.key == pygame.K_SPACE and estado.tela != "jogo":
                     reiniciar_partida(estado, agora)
             elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
-                if estado.tela == "inicio" and botao_iniciar.collidepoint(evento.pos):
+                posicao = converter_posicao_mouse(evento.pos, janela.get_size())
+                if posicao is None:
+                    continue
+
+                if estado.tela == "inicio":
+                    modo_selecionado = next(
+                        (
+                            modo
+                            for retangulo, modo in criar_botoes_modos()
+                            if retangulo.collidepoint(posicao)
+                        ),
+                        None,
+                    )
+                    if modo_selecionado is not None:
+                        modo_exibicao = modo_selecionado
+                        if modo_exibicao != MODO_TELA_CHEIA:
+                            modo_antes_tela_cheia = modo_exibicao
+                        janela = criar_janela(modo_exibicao)
+                        continue
+
+                if estado.tela == "inicio" and botao_iniciar.collidepoint(posicao):
                     estado.nome_jogador = estado.nome_jogador.strip() or "Jogador"
                     reiniciar_partida(estado, agora)
                 elif estado.tela == "inicio":
                     for retangulo, nome in criar_botoes_jogadores(ranking):
-                        if retangulo.collidepoint(evento.pos):
+                        if retangulo.collidepoint(posicao):
                             estado.nome_jogador = nome
                             break
                 elif estado.tela == "jogo" and estado.vidas > 0:
-                    resultado_clique = processar_clique(estado, evento.pos, agora)
+                    resultado_clique = processar_clique(estado, posicao, agora)
                     sons.tocar(resultado_clique)
 
         if estado.tela == "jogo":
@@ -603,6 +685,7 @@ def executar_jogo():
         atualizar_feedbacks(estado, agora)
         if estado.tela == "inicio":
             botoes_jogadores = criar_botoes_jogadores(ranking)
+            botoes_modos = criar_botoes_modos()
             desenhar_tela_inicial(
                 tela,
                 fonte_grande,
@@ -612,6 +695,8 @@ def executar_jogo():
                 campo_nome,
                 estado.nome_jogador,
                 botoes_jogadores,
+                botoes_modos,
+                modo_exibicao,
             )
         else:
             desenhar_informacoes(tela, fonte, fonte_tempo, estado, recorde)
@@ -628,6 +713,7 @@ def executar_jogo():
                     tela, fonte_grande, fonte, fonte_pequena, estado, ranking
                 )
 
+        apresentar_quadro(janela, tela)
         pygame.display.flip()
 
     pygame.quit()

@@ -10,6 +10,7 @@ Esta pasta contém os módulos principais do jogo.
 - `dados.py`: leitura e gravação de dados (recorde/ranking).
 - `estado.py`: classes que representam partida, alvo, itens e estatísticas.
 - `audio.py`: geração dos efeitos sonoros em memória.
+- `exibicao.py`: modos de janela, escala proporcional e coordenadas do mouse.
 
 ## Dica de evolução
 

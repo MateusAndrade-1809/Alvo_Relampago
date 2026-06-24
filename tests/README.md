@@ -6,6 +6,7 @@ Esta pasta contem testes automatizados do projeto.
 
 - `test_logica.py`: valida pontuação, vidas, tempo, níveis e recorde.
 - `test_melhorias.py`: valida dificuldade, itens, colisões, estatísticas e ranking.
+- `test_exibicao.py`: valida modos de tela, proporção e posição dos cliques.
 
 ## Como executar
 

@@ -64,7 +64,12 @@ itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
 - Enter ou botão **Iniciar**: começa a partida.
 - Mouse: acerta alvos e coleta itens.
 - Espaço: inicia uma nova partida após o fim.
+- F11: alterna entre janela, janela cheia e tela cheia.
+- Alt + Enter: entra ou sai rapidamente da tela cheia.
 - Esc: fecha o jogo.
+
+Na tela inicial também existem botões para escolher diretamente entre os três
+modos de exibição. A imagem mantém a proporção correta em qualquer resolução.
 
 ## Ranking e estatísticas
 
