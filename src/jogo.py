@@ -504,7 +504,7 @@ def executar_jogo():
     sons = GerenciadorSons()
 
     recorde = carregar_recorde(CAMINHO_RECORDE)
-    ranking = carregar_ranking(CAMINHO_RANKING)
+    ranking = carregar_ranking(CAMINHO_RANKING)[:LIMITE_RANKING]
     estado = EstadoJogo()
     estado.alvo = criar_alvo(0)
     botao_iniciar = pygame.Rect(300, 260, 200, 70)
