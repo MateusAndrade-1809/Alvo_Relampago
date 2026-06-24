@@ -1,49 +1,53 @@
-# Roteiro de Apresentacao - Alvo Relampago
+# Roteiro de Apresentação - Alvo Relâmpago
 
-## 1. Nome do jogo
+## 1. Ideia principal
 
-Alvo Relampago.
+O jogador precisa clicar rapidamente nos alvos antes que desapareçam. A partida
+fica progressivamente mais difícil.
 
-## 2. Ideia principal
+## 2. Objetivo
 
-O jogador precisa clicar rapidamente nos alvos vermelhos que aparecem em posicoes aleatorias na tela.
+Fazer a maior pontuação possível antes do tempo acabar ou antes de perder as
+três vidas.
 
-## 3. Objetivo
+## 3. Mecânicas
 
-Fazer a maior pontuacao possivel antes do tempo acabar ou antes de perder todas as vidas.
+- Alvos de quatro tamanhos, com pontuações diferentes.
+- Quatro fases de dificuldade.
+- Alvos móveis nas fases avançadas.
+- Coração que recupera uma vida.
+- Ampulheta que adiciona cinco segundos.
+- Perda de vida ao errar ou deixar um alvo escapar.
+- Feedback visual e sonoro para cada ação.
 
-## 4. Controles
+## 4. Jogadores e ranking
 
-- Clique no botao Iniciar para comecar.
-- Clique com o mouse no alvo para ganhar pontos.
-- Clique fora do alvo perde uma vida.
-- Espaco reinicia a partida depois do fim.
-- ESC sai do jogo.
+O jogador digita seu nome ou seleciona um nome salvo. Ao fim da partida, a
+pontuação pode entrar no ranking Top 5 armazenado em `data/ranking.txt`.
 
-## 5. Regras
+## 5. Estatísticas
 
-- O jogador comeca com 3 vidas.
-- Cada acerto vale 5 pontos.
-- Cada erro tira 1 vida.
-- O tempo limite e de 30 segundos.
-- O recorde fica salvo localmente em `data/recorde.txt`, por exemplo `Recorde: 100 pontos`.
+A tela final mostra acertos, erros, alvos perdidos, precisão, itens coletados,
+tempo jogado, nível final e ranking.
 
-## 6. Niveis
+## 6. Organização do código
 
-- Iniciante.
-- Intermediario.
-- Excelente.
-- Extraordinario.
-- Deus, a partir de 600 pontos.
+- `main.py`: inicia o jogo.
+- `src/jogo.py`: controla telas, eventos e desenho.
+- `src/estado.py`: representa o estado atual da partida.
+- `src/funcoes.py`: concentra regras testáveis.
+- `src/dados.py`: salva recorde e ranking.
+- `src/audio.py`: gera os efeitos sonoros.
+- `src/config.py`: guarda configurações e balanceamento.
 
-## 7. Partes do codigo
+## 7. Testes
 
-- `main.py` inicia o jogo.
-- `src/jogo.py` contem a janela, o loop principal e os desenhos.
-- `src/funcoes.py` contem a logica de pontuacao, vidas, tempo e niveis.
-- `src/dados.py` salva e carrega o recorde.
-- `src/config.py` guarda configuracoes como tamanho da tela, cores e tempo.
+Os testes verificam pontuação, dano, tempo, níveis, itens, dificuldade,
+posicionamento sem sobreposição, estatísticas, recorde e ranking.
 
-## 8. Testes
+## 8. Execução
 
-Os testes verificam pontuacao, dano, derrota, tempo, niveis, clique no alvo e leitura/escrita do recorde.
+```bash
+python -m pip install -r requirements.txt
+python main.py
+```

@@ -8,6 +8,8 @@ Esta pasta contém os módulos principais do jogo.
 - `config.py`: constantes globais (tela, cores, caminhos, FPS).
 - `funcoes.py`: funções auxiliares de regra e lógica.
 - `dados.py`: leitura e gravação de dados (recorde/ranking).
+- `estado.py`: classes que representam partida, alvo, itens e estatísticas.
+- `audio.py`: geração dos efeitos sonoros em memória.
 
 ## Dica de evolução
 

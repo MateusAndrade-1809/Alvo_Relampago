@@ -55,6 +55,8 @@ As funcionalidades implementadas nesta etapa contribuíram para:
 
 ## Próximos Passos
 
-* Sistema de cadastro e seleção de jogadores.
-* Ranking de pontuações.
-* Sistema de combo
+As ideias de cadastro e seleção de jogadores e ranking de pontuações foram
+implementadas na evolução seguinte do projeto.
+
+O sistema de combo permanece apenas como uma possibilidade futura e não faz
+parte da versão atual.

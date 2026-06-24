@@ -4,7 +4,10 @@ Esta pasta concentra documentos de planejamento e apoio ao projeto.
 
 ## Arquivos
 
-- `proposta.MD`: proposta inicial do jogo para preenchimento do grupo.
+- `proposta.md`: proposta inicial do jogo.
+- `semana3.md`: funcionalidades entregues na terceira semana.
+- `semana4.md`: evolução com itens e dificuldade.
+- `apresentacao.md`: roteiro para apresentação do projeto.
 
 ## Sugestoes de uso
 

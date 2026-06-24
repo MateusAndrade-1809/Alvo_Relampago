@@ -1,6 +1,7 @@
-# Alvo Relampago
+# Alvo Relâmpago
 
-Projeto final da disciplina de Introducao a Algoritmos/Programacao, desenvolvido com Python e Pygame.
+Projeto final da disciplina de Introdução a Algoritmos/Programação, desenvolvido
+com Python e Pygame.
 
 ## Integrantes do grupo
 
@@ -10,61 +11,86 @@ Projeto final da disciplina de Introducao a Algoritmos/Programacao, desenvolvido
 - Mateus Andrade
 - Arthur Ramos
 
-## Descricao do jogo
+## Sobre o jogo
 
-Alvo Relampago e um jogo simples de clique rapido. Um alvo circular aparece em uma posicao aleatoria da tela, e o jogador deve clicar nele para ganhar pontos. Quando o jogador erra o alvo, perde uma vida.
+Alvo Relâmpago é um jogo de precisão e velocidade. O jogador precisa acertar
+alvos que aparecem em posições aleatórias antes que eles desapareçam. Conforme
+a pontuação aumenta, os alvos ficam menores, passam a se mover e permanecem
+menos tempo na tela.
 
-O jogo tem tela inicial, tempo limite, sistema de pontuacao, vidas, niveis por desempenho, recorde salvo em arquivo e tela final.
+O jogo possui cadastro e seleção de jogadores, ranking Top 5, recorde local,
+itens especiais, efeitos sonoros, feedback visual e estatísticas da partida.
 
-## Objetivo do jogador
+## Regras
 
-O objetivo e fazer a maior pontuacao possivel antes que o tempo acabe ou antes de perder todas as vidas.
+- O jogador começa com 3 vidas e 30 segundos.
+- Acertar um alvo concede pontos de acordo com o tamanho dele.
+- Clicar fora do alvo remove uma vida.
+- Deixar um alvo desaparecer também remove uma vida.
+- A partida termina quando o tempo acaba ou as vidas chegam a zero.
+- O coração recupera uma vida, respeitando o limite de 3.
+- A ampulheta adiciona 5 segundos ao tempo restante.
+- Alvos e itens nunca são criados sobrepostos.
 
-## Regras do jogo
+## Pontuação dos alvos
 
-- O jogador comeca com 3 vidas.
-- Cada clique correto no alvo aumenta 5 pontos.
-- Cada clique fora do alvo remove 1 vida.
-- Depois de um acerto, o alvo muda para uma nova posicao aleatoria.
-- A partida termina quando as vidas chegam a zero.
-- A partida tambem termina quando o tempo acaba.
-- O jogo mostra o nivel do jogador de acordo com a pontuacao.
-- O maior recorde fica salvo localmente em `data/recorde.txt`, no formato `Recorde: 100 pontos`.
+| Tamanho | Pontos |
+|---|---:|
+| Grande | 4 |
+| Médio | 5 |
+| Pequeno | 8 |
+| Mínimo | 12 |
 
-## Niveis de pontuacao
+## Dificuldade progressiva
 
-- 0 a 95 pontos: Iniciante.
-- 100 a 245 pontos: Intermediario.
-- 250 a 395 pontos: Excelente.
-- 400 a 595 pontos: Extraordinario.
-- 600 pontos ou mais: Deus.
+| Pontuação | Fase | Comportamento |
+|---:|---|---|
+| 0 | Aquecimento | Alvos grandes ou médios |
+| 40 | Ágil | Alvos médios ou pequenos |
+| 100 | Rápido | Alvos começam a se mover |
+| 250 | Relâmpago | Alvos menores, rápidos e com menos tempo |
+
+## Níveis de desempenho
+
+- 0 a 99 pontos: Iniciante
+- 100 a 249 pontos: Intermediário
+- 250 a 399 pontos: Excelente
+- 400 a 599 pontos: Extraordinário
+- 600 pontos ou mais: Deus
 
 ## Controles
 
-- Botao Iniciar: comeca a partida.
-- Mouse: clicar no alvo.
-- Espaco: iniciar ou reiniciar depois do fim da partida.
-- ESC: sair do jogo.
+- Digitação: informa o nome do jogador.
+- Enter ou botão **Iniciar**: começa a partida.
+- Mouse: acerta alvos e coleta itens.
+- Espaço: inicia uma nova partida após o fim.
+- Esc: fecha o jogo.
 
-## Estrutura do projeto
+## Ranking e estatísticas
 
-- `main.py`: ponto de entrada da aplicacao.
-- `src/config.py`: configuracoes do jogo.
-- `src/funcoes.py`: funcoes de logica.
-- `src/dados.py`: leitura e escrita do recorde.
-- `src/jogo.py`: janela, loop principal e desenho do jogo.
-- `tests/`: testes unitarios.
-- `docs/`: documentacao do projeto.
-- `assets/`: arquivos de assets e referencias.
-- `data/`: arquivos auxiliares de dados.
+As cinco melhores pontuações são salvas em `data/ranking.txt`. A tela final
+mostra:
 
-## Como executar o projeto
+- acertos;
+- erros;
+- alvos perdidos;
+- precisão;
+- itens coletados;
+- tempo jogado;
+- nível final;
+- ranking Top 5.
+
+## Como executar
+
+Requer Python instalado. Na pasta do projeto:
 
 ```bash
-cd Alvo_Relampago
 python -m pip install -r requirements.txt
 python main.py
 ```
+
+O `requirements.txt` instala automaticamente a edição do Pygame compatível com
+a versão do Python utilizada.
 
 ## Como executar os testes
 
@@ -72,21 +98,25 @@ python main.py
 python -m pytest
 ```
 
-## Arquivos importantes
+## Estrutura do projeto
 
-- `docs/proposta.md`: proposta inicial do jogo.
-- `docs/semana3.md`: resumo das funcionalidades criadas ate a Semana 3.
-- `docs/apresentacao.md`: roteiro para apresentacao em sala.
-- `assets/REFERENCIAS.md`: referencias e observacoes sobre assets externos.
-- `data/recorde.txt`: arquivo local usado para salvar o recorde, por exemplo `Recorde: 100 pontos`.
+- `main.py`: ponto de entrada.
+- `src/jogo.py`: loop principal, eventos e renderização.
+- `src/estado.py`: estado da partida, alvo, itens e estatísticas.
+- `src/funcoes.py`: regras e funções testáveis.
+- `src/dados.py`: recorde, jogadores e ranking.
+- `src/audio.py`: efeitos sonoros gerados em memória.
+- `src/config.py`: configurações, cores e balanceamento.
+- `tests/`: testes automatizados.
+- `docs/`: documentação da disciplina.
+- `assets/`: documentação dos recursos visuais e sonoros.
+- `data/`: persistência local do recorde e ranking.
 
-## Entrega final
+## Dados locais
 
-- Jogo completo e executavel.
-- Codigo-fonte organizado em modulos.
-- README preenchido.
-- Proposta inicial em `docs/proposta.md`.
-- Testes implementados.
-- Arquivos auxiliares em `data/`.
-- Referencias de assets em `assets/REFERENCIAS.md`.
-- Roteiro de apresentacao em `docs/apresentacao.md`.
+- `data/recorde.txt`: maior pontuação registrada.
+- `data/ranking.txt`: Top 5 no formato `nome;pontuação`.
+
+Os elementos visuais são desenhados pelo Pygame e os efeitos sonoros são
+gerados pelo próprio código. O projeto não depende de imagens ou áudios
+externos.
