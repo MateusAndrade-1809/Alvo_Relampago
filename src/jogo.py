@@ -27,10 +27,12 @@ from src.config import (
     ROSA,
     TEMPO_LIMITE,
     TITULO_JOGO,
+    VERDE,
     VERMELHO,
     VERMELHO_ESCURO,
     VIDAS_INICIAIS,
 )
+from src.audio import GerenciadorSons
 from src.dados import (
     carregar_ranking,
     carregar_recorde,
@@ -39,7 +41,7 @@ from src.dados import (
     salvar_ranking,
     salvar_recorde,
 )
-from src.estado import Alvo, EstadoJogo, Estatisticas
+from src.estado import Alvo, EstadoJogo, Estatisticas, MensagemFlutuante
 from src.funcoes import (
     atualizar_recorde,
     alvo_expirou,
@@ -187,19 +189,32 @@ def desenhar_tela_inicial(
             imagem = fonte_pequena.render(nome[:12], True, PRETO)
             tela.blit(imagem, imagem.get_rect(center=retangulo.center))
 
+    desenhar_coracao(tela, 190, 535, raio=14)
+    desenhar_texto(tela, fonte_pequena, "recupera 1 vida", PRETO, 215, 523)
+    desenhar_ampulheta(tela, 495, 535)
+    desenhar_texto(tela, fonte_pequena, "adiciona 5 segundos", PRETO, 525, 523)
+
 
 def desenhar_vidas(tela, vidas, x, y):
     for indice in range(vidas):
         desenhar_coracao(tela, x + indice * 28, y, raio=8)
 
 
-def desenhar_informacoes(tela, fonte, estado, recorde):
+def desenhar_informacoes(tela, fonte, fonte_tempo, estado, recorde):
     nivel = calcular_nivel(estado.pontos)
     fase = obter_dificuldade(estado.pontos)["nome"]
     desenhar_texto(tela, fonte, f"Pontos: {estado.pontos}", PRETO, 20, 20)
     desenhar_texto(tela, fonte, "Vidas:", PRETO, 190, 20)
     desenhar_vidas(tela, estado.vidas, 265, 32)
-    desenhar_texto(tela, fonte, f"Tempo: {estado.tempo_restante}", PRETO, 330, 20)
+    cor_tempo = VERMELHO if estado.tempo_restante <= 5 else PRETO
+    desenhar_texto(
+        tela,
+        fonte_tempo if estado.tempo_restante <= 5 else fonte,
+        f"Tempo: {estado.tempo_restante}",
+        cor_tempo,
+        330,
+        16 if estado.tempo_restante <= 5 else 20,
+    )
     desenhar_texto(tela, fonte, f"Recorde: {recorde} pts", PRETO, 500, 20)
     desenhar_texto(tela, fonte, f"Nivel: {nivel} | Fase: {fase}", AZUL, 20, 55)
 
@@ -215,20 +230,46 @@ def desenhar_ranking(tela, fonte_pequena, ranking, y_inicial):
 
 def desenhar_tela_final(tela, fonte_grande, fonte, fonte_pequena, estado, ranking):
     desenhar_texto_centralizado(
-        tela, fonte_grande, estado.mensagem, VERMELHO_ESCURO, 145
+        tela, fonte_grande, estado.mensagem, VERMELHO_ESCURO, 80
     )
     desenhar_texto_centralizado(
-        tela, fonte, estado.nome_jogador, AZUL, 205
+        tela, fonte, estado.nome_jogador, AZUL, 140
     )
     desenhar_texto_centralizado(
-        tela, fonte, f"Pontuacao final: {estado.pontos}", PRETO, 245
+        tela, fonte, f"Pontuacao final: {estado.pontos}", PRETO, 180
     )
     desenhar_texto_centralizado(
-        tela, fonte, f"Nivel final: {calcular_nivel(estado.pontos)}", PRETO, 280
+        tela,
+        fonte_pequena,
+        (
+            f"Acertos: {estado.estatisticas.acertos} | "
+            f"Erros: {estado.estatisticas.erros} | "
+            f"Alvos perdidos: {estado.estatisticas.alvos_perdidos}"
+        ),
+        PRETO,
+        225,
     )
-    desenhar_ranking(tela, fonte_pequena, ranking, 325)
     desenhar_texto_centralizado(
-        tela, fonte_pequena, "ESPACO: jogar novamente | ESC: sair", AZUL, 535
+        tela,
+        fonte_pequena,
+        (
+            f"Precisao: {estado.estatisticas.precisao}% | "
+            f"Itens: {estado.estatisticas.coracoes + estado.estatisticas.ampulhetas} | "
+            f"Tempo jogado: {estado.tempo_jogado}s"
+        ),
+        PRETO,
+        252,
+    )
+    desenhar_texto_centralizado(
+        tela,
+        fonte_pequena,
+        f"Nivel final: {calcular_nivel(estado.pontos)}",
+        AZUL,
+        279,
+    )
+    desenhar_ranking(tela, fonte_pequena, ranking, 315)
+    desenhar_texto_centralizado(
+        tela, fonte_pequena, "ESPACO: jogar novamente | ESC: sair", AZUL, 525
     )
 
 
@@ -237,6 +278,8 @@ def reiniciar_partida(estado, agora):
     estado.vidas = VIDAS_INICIAIS
     estado.tempo_restante = TEMPO_LIMITE
     estado.inicio = agora
+    estado.inicio_real = agora
+    estado.fim = 0
     estado.ultimo_frame = agora
     estado.tela = "jogo"
     estado.mensagem = ""
@@ -251,6 +294,8 @@ def reiniciar_partida(estado, agora):
         sortear_proximo_intervalo(INTERVALO_ITEM_MIN, INTERVALO_ITEM_MAX) * 1000
     )
     estado.estatisticas = Estatisticas()
+    estado.mensagens.clear()
+    estado.flash_ate = 0
 
 
 def verificar_fim_da_partida(vidas, tempo_restante):
@@ -301,6 +346,45 @@ def criar_novo_alvo(estado, agora):
     )
 
 
+def adicionar_feedback(estado, texto, x, y, cor, agora):
+    estado.mensagens.append(
+        MensagemFlutuante(
+            texto=texto,
+            x=round(x),
+            y=round(y),
+            cor=cor,
+            criada_em=agora,
+        )
+    )
+
+
+def atualizar_feedbacks(estado, agora):
+    estado.mensagens = [
+        mensagem
+        for mensagem in estado.mensagens
+        if agora - mensagem.criada_em < mensagem.duracao
+    ]
+
+
+def desenhar_feedbacks(tela, fonte_pequena, estado, agora):
+    for mensagem in estado.mensagens:
+        progresso = (agora - mensagem.criada_em) / mensagem.duracao
+        imagem = fonte_pequena.render(mensagem.texto, True, mensagem.cor)
+        imagem.set_alpha(max(0, round(255 * (1 - progresso))))
+        x = mensagem.x - imagem.get_width() // 2
+        y = mensagem.y - round(progresso * 35)
+        tela.blit(imagem, (x, y))
+
+
+def desenhar_flash_dano(tela, estado, agora):
+    if agora >= estado.flash_ate:
+        return
+
+    camada = pygame.Surface((LARGURA_TELA, ALTURA_TELA), pygame.SRCALPHA)
+    camada.fill((220, 45, 45, 55))
+    tela.blit(camada, (0, 0))
+
+
 def atualizar_movimento_alvo(estado, delta_segundos):
     alvo = estado.alvo
     if alvo.velocidade_x == 0 and alvo.velocidade_y == 0:
@@ -338,7 +422,18 @@ def atualizar_alvo_expirado(estado, agora):
     if alvo_expirou(estado.alvo.surgiu_em, agora, duracao):
         estado.vidas = tomar_dano(estado.vidas, 1)
         estado.estatisticas.alvos_perdidos += 1
+        estado.flash_ate = agora + 180
+        adicionar_feedback(
+            estado,
+            "Alvo perdido: -1 vida",
+            estado.alvo.x,
+            estado.alvo.y,
+            VERMELHO,
+            agora,
+        )
         criar_novo_alvo(estado, agora)
+        return True
+    return False
 
 
 def processar_clique(estado, posicao, agora):
@@ -347,26 +442,54 @@ def processar_clique(estado, posicao, agora):
     if estado.coracao.ativo and item_foi_clicado(
         posicao, (estado.coracao.x, estado.coracao.y)
     ):
+        vidas_anteriores = estado.vidas
         estado.vidas = curar_vida(estado.vidas)
         estado.estatisticas.coracoes += 1
+        texto = "+1 vida" if estado.vidas > vidas_anteriores else "Vida cheia"
+        adicionar_feedback(
+            estado, texto, estado.coracao.x, estado.coracao.y, VERDE, agora
+        )
         agendar_proximo_item(estado.coracao, agora)
+        return "item"
     elif estado.ampulheta.ativo and item_foi_clicado(
         posicao, (estado.ampulheta.x, estado.ampulheta.y)
     ):
         estado.inicio += BONUS_TEMPO * 1000
         estado.estatisticas.ampulhetas += 1
+        adicionar_feedback(
+            estado,
+            f"+{BONUS_TEMPO} segundos",
+            estado.ampulheta.x,
+            estado.ampulheta.y,
+            AMARELO,
+            agora,
+        )
         agendar_proximo_item(estado.ampulheta, agora)
+        return "item"
     elif clique_acertou_alvo(
         posicao, (estado.alvo.x, estado.alvo.y), raio_alvo
     ):
-        estado.pontos = calcular_pontos(
-            estado.pontos, obter_pontos_alvo(estado.alvo.tamanho)
-        )
+        pontos_ganhos = obter_pontos_alvo(estado.alvo.tamanho)
+        estado.pontos = calcular_pontos(estado.pontos, pontos_ganhos)
         estado.estatisticas.acertos += 1
+        adicionar_feedback(
+            estado,
+            f"+{pontos_ganhos}",
+            estado.alvo.x,
+            estado.alvo.y,
+            VERDE,
+            agora,
+        )
         criar_novo_alvo(estado, agora)
+        return "acerto"
     else:
         estado.vidas = tomar_dano(estado.vidas, 1)
         estado.estatisticas.erros += 1
+        estado.flash_ate = agora + 180
+        adicionar_feedback(
+            estado, "-1 vida", posicao[0], posicao[1], VERMELHO, agora
+        )
+        return "erro"
 
 
 def executar_jogo():
@@ -377,6 +500,8 @@ def executar_jogo():
     fonte = pygame.font.SysFont("arial", 28)
     fonte_grande = pygame.font.SysFont("arial", 48, bold=True)
     fonte_pequena = pygame.font.SysFont("arial", 20)
+    fonte_tempo = pygame.font.SysFont("arial", 32, bold=True)
+    sons = GerenciadorSons()
 
     recorde = carregar_recorde(CAMINHO_RECORDE)
     ranking = carregar_ranking(CAMINHO_RANKING)
@@ -398,7 +523,8 @@ def executar_jogo():
                 TEMPO_LIMITE, segundos_passados
             )
             atualizar_movimento_alvo(estado, delta_segundos)
-            atualizar_alvo_expirado(estado, agora)
+            if atualizar_alvo_expirado(estado, agora):
+                sons.tocar("erro")
             atualizar_item(
                 estado.coracao,
                 agora,
@@ -438,8 +564,9 @@ def executar_jogo():
                         if retangulo.collidepoint(evento.pos):
                             estado.nome_jogador = nome
                             break
-                elif estado.tela == "jogo":
-                    processar_clique(estado, evento.pos, agora)
+                elif estado.tela == "jogo" and estado.vidas > 0:
+                    resultado_clique = processar_clique(estado, evento.pos, agora)
+                    sons.tocar(resultado_clique)
 
         if estado.tela == "jogo":
             # Recalcula depois dos eventos para que uma ampulheta coletada no
@@ -454,6 +581,7 @@ def executar_jogo():
             if mensagem_fim:
                 estado.tela = "fim"
                 estado.mensagem = mensagem_fim
+                estado.fim = agora
 
             if estado.tela == "fim" and not estado.resultado_salvo:
                 ranking = registrar_pontuacao(
@@ -464,6 +592,7 @@ def executar_jogo():
                 )
                 salvar_ranking(CAMINHO_RANKING, ranking)
                 estado.resultado_salvo = True
+                sons.tocar("fim")
 
             novo_recorde = atualizar_recorde(estado.pontos, recorde)
             if novo_recorde != recorde:
@@ -471,6 +600,7 @@ def executar_jogo():
                 salvar_recorde(CAMINHO_RECORDE, recorde)
 
         tela.fill(CINZA)
+        atualizar_feedbacks(estado, agora)
         if estado.tela == "inicio":
             botoes_jogadores = criar_botoes_jogadores(ranking)
             desenhar_tela_inicial(
@@ -484,13 +614,15 @@ def executar_jogo():
                 botoes_jogadores,
             )
         else:
-            desenhar_informacoes(tela, fonte, estado, recorde)
+            desenhar_informacoes(tela, fonte, fonte_tempo, estado, recorde)
             if estado.tela == "jogo":
                 desenhar_alvo(tela, estado.alvo)
                 if estado.coracao.ativo:
                     desenhar_coracao(tela, estado.coracao.x, estado.coracao.y)
                 if estado.ampulheta.ativo:
                     desenhar_ampulheta(tela, estado.ampulheta.x, estado.ampulheta.y)
+                desenhar_feedbacks(tela, fonte_pequena, estado, agora)
+                desenhar_flash_dano(tela, estado, agora)
             else:
                 desenhar_tela_final(
                     tela, fonte_grande, fonte, fonte_pequena, estado, ranking

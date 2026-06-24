@@ -1,9 +1,4 @@
 # Sons
 
-Pasta para efeitos sonoros e trilhas do jogo.
-
-## Recomendações
-
-- Use formatos leves, como `.ogg` para musica e `.wav` para efeitos curtos.
-- Normalize volume para evitar diferencas bruscas entre arquivos.
-- Documente a origem dos audios quando forem externos.
+Os efeitos de acerto, erro, item e fim de partida são gerados em memória pelo
+próprio jogo. Assim, não existem arquivos de áudio externos para distribuir.

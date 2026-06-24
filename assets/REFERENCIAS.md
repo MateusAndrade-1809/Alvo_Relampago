@@ -8,7 +8,7 @@ Nenhuma imagem externa e usada na versao final do jogo.
 
 ## Sons
 
-Nenhum som externo e usado na versao final do jogo.
+Nenhum som externo e usado. Os efeitos sao ondas simples geradas pelo codigo.
 
 ## Fontes
 

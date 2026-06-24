@@ -55,12 +55,24 @@ class Estatisticas:
 
 
 @dataclass
+class MensagemFlutuante:
+    texto: str
+    x: int
+    y: int
+    cor: tuple
+    criada_em: int
+    duracao: int = 900
+
+
+@dataclass
 class EstadoJogo:
     nome_jogador: str = ""
     pontos: int = 0
     vidas: int = VIDAS_INICIAIS
     tempo_restante: int = TEMPO_LIMITE
     inicio: int = 0
+    inicio_real: int = 0
+    fim: int = 0
     ultimo_frame: int = 0
     tela: str = "inicio"
     mensagem: str = ""
@@ -69,3 +81,11 @@ class EstadoJogo:
     coracao: ItemEspecial = field(default_factory=ItemEspecial)
     ampulheta: ItemEspecial = field(default_factory=ItemEspecial)
     estatisticas: Estatisticas = field(default_factory=Estatisticas)
+    mensagens: list[MensagemFlutuante] = field(default_factory=list)
+    flash_ate: int = 0
+
+    @property
+    def tempo_jogado(self):
+        if self.fim <= self.inicio_real:
+            return 0
+        return round((self.fim - self.inicio_real) / 1000)
