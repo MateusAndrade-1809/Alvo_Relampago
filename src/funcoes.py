@@ -2,7 +2,10 @@ import random
 
 from src.config import (
     ALTURA_TELA,
+    ALTURA_HUD,
+    FASES_DIFICULDADE,
     LARGURA_TELA,
+    MARGEM_ENTRE_ELEMENTOS,
     RAIO_ITEM,
     TAMANHOS_ALVO,
     VIDAS_MAXIMAS,
@@ -84,14 +87,23 @@ def clique_acertou_alvo(posicao_clique, posicao_alvo, raio_alvo):
     return distancia <= raio_alvo
 
 
+def obter_dificuldade(pontos):
+    """Retorna a fase de dificuldade correspondente a pontuacao."""
+    dificuldade_atual = FASES_DIFICULDADE[0]
+
+    for dificuldade in FASES_DIFICULDADE:
+        if pontos >= dificuldade["pontos_minimos"]:
+            dificuldade_atual = dificuldade
+        else:
+            break
+
+    return dificuldade_atual
+
+
 def sortear_tamanho_alvo(pontos):
-    """Retorna um tamanho de alvo aleatorio se o jogador tiver pontos suficientes."""
-    from src.config import PONTUACAO_PARA_VARIAR_ALVO
-
-    if pontos < PONTUACAO_PARA_VARIAR_ALVO:
-        return "medio"
-
-    return random.choice(["medio", "pequeno"])
+    """Sorteia um tamanho permitido pela dificuldade atual."""
+    dificuldade = obter_dificuldade(pontos)
+    return random.choice(dificuldade["tamanhos"])
 
 
 def obter_raio_alvo(tamanho):
@@ -104,11 +116,52 @@ def obter_pontos_alvo(tamanho):
     return TAMANHOS_ALVO[tamanho]["pontos"]
 
 
-def criar_posicao_item():
+def elementos_sobrepostos(posicao_a, raio_a, posicao_b, raio_b, margem=0):
+    """Verifica se dois elementos circulares ocupam a mesma area."""
+    distancia_x = posicao_a[0] - posicao_b[0]
+    distancia_y = posicao_a[1] - posicao_b[1]
+    distancia_quadrada = distancia_x**2 + distancia_y**2
+    distancia_minima = raio_a + raio_b + margem
+    return distancia_quadrada < distancia_minima**2
+
+
+def posicao_esta_livre(posicao, raio, ocupados, margem=MARGEM_ENTRE_ELEMENTOS):
+    """Verifica se uma posicao nao invade nenhum circulo ocupado."""
+    return all(
+        not elementos_sobrepostos(posicao, raio, (x, y), outro_raio, margem)
+        for x, y, outro_raio in ocupados
+    )
+
+
+def criar_posicao_livre(raio, ocupados=()):
+    """Gera uma posicao valida sem sobrepor alvo ou itens existentes."""
+    x_minimo = raio + 10
+    x_maximo = LARGURA_TELA - raio - 10
+    y_minimo = ALTURA_HUD + raio
+    y_maximo = ALTURA_TELA - raio - 10
+
+    for _ in range(100):
+        posicao = (
+            random.randint(x_minimo, x_maximo),
+            random.randint(y_minimo, y_maximo),
+        )
+        if posicao_esta_livre(posicao, raio, ocupados):
+            return posicao
+
+    # A busca em grade garante uma alternativa mesmo com uma sequencia
+    # aleatoria desfavoravel.
+    passo = max(raio * 2, 20)
+    for y in range(y_minimo, y_maximo + 1, passo):
+        for x in range(x_minimo, x_maximo + 1, passo):
+            if posicao_esta_livre((x, y), raio, ocupados):
+                return x, y
+
+    return LARGURA_TELA // 2, (ALTURA_HUD + ALTURA_TELA) // 2
+
+
+def criar_posicao_item(ocupados=()):
     """Gera uma posicao aleatoria valida para um item especial."""
-    x = random.randint(RAIO_ITEM + 10, LARGURA_TELA - RAIO_ITEM - 10)
-    y = random.randint(90 + RAIO_ITEM, ALTURA_TELA - RAIO_ITEM - 10)
-    return x, y
+    return criar_posicao_livre(RAIO_ITEM, ocupados)
 
 
 def item_foi_clicado(posicao_clique, posicao_item):
@@ -118,6 +171,12 @@ def item_foi_clicado(posicao_clique, posicao_item):
 
 def item_expirou(tempo_surgimento, tempo_atual, duracao):
     """Verifica se o item ficou tempo demais na tela sem ser coletado."""
+    segundos_na_tela = (tempo_atual - tempo_surgimento) / 1000
+    return segundos_na_tela >= duracao
+
+
+def alvo_expirou(tempo_surgimento, tempo_atual, duracao):
+    """Verifica se o jogador demorou demais para acertar o alvo."""
     segundos_na_tela = (tempo_atual - tempo_surgimento) / 1000
     return segundos_na_tela >= duracao
 

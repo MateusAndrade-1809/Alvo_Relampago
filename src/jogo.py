@@ -1,9 +1,11 @@
 import random
+import math
 
 import pygame
 
 from src.config import (
     ALTURA_TELA,
+    ALTURA_HUD,
     AMARELO,
     AZUL,
     BONUS_TEMPO,
@@ -16,12 +18,12 @@ from src.config import (
     INTERVALO_ITEM_MIN,
     LARANJA,
     LARGURA_TELA,
+    MARGEM_ENTRE_ELEMENTOS,
     PRETO,
     RAIO_ITEM,
     ROSA,
     TEMPO_LIMITE,
     TITULO_JOGO,
-    VERDE,
     VERMELHO,
     VERMELHO_ESCURO,
     VIDAS_INICIAIS,
@@ -30,16 +32,19 @@ from src.dados import carregar_recorde, salvar_recorde
 from src.estado import Alvo, EstadoJogo, Estatisticas
 from src.funcoes import (
     atualizar_recorde,
+    alvo_expirou,
     calcular_nivel,
     calcular_pontos,
     calcular_tempo_restante,
     clique_acertou_alvo,
     criar_posicao_item,
+    criar_posicao_livre,
     curar_vida,
     item_expirou,
     item_foi_clicado,
     jogador_perdeu,
     obter_pontos_alvo,
+    obter_dificuldade,
     obter_raio_alvo,
     sortear_proximo_intervalo,
     sortear_tamanho_alvo,
@@ -48,13 +53,29 @@ from src.funcoes import (
 )
 
 
-def criar_alvo(pontos, agora=0):
+def criar_alvo(pontos, agora=0, ocupados=()):
     """Cria um alvo aleatorio dentro da area jogavel."""
     tamanho = sortear_tamanho_alvo(pontos)
     raio = obter_raio_alvo(tamanho)
-    x = random.randint(raio, LARGURA_TELA - raio)
-    y = random.randint(90 + raio, ALTURA_TELA - raio)
-    return Alvo(x=x, y=y, tamanho=tamanho, surgiu_em=agora)
+    x, y = criar_posicao_livre(raio, ocupados)
+    velocidade = obter_dificuldade(pontos)["velocidade"]
+
+    if velocidade:
+        angulo = random.uniform(0, math.tau)
+        velocidade_x = math.cos(angulo) * velocidade
+        velocidade_y = math.sin(angulo) * velocidade
+    else:
+        velocidade_x = 0
+        velocidade_y = 0
+
+    return Alvo(
+        x=x,
+        y=y,
+        tamanho=tamanho,
+        surgiu_em=agora,
+        velocidade_x=velocidade_x,
+        velocidade_y=velocidade_y,
+    )
 
 
 def desenhar_texto(tela, fonte, texto, cor, x, y):
@@ -116,12 +137,13 @@ def desenhar_vidas(tela, vidas, x, y):
 
 def desenhar_informacoes(tela, fonte, estado, recorde):
     nivel = calcular_nivel(estado.pontos)
+    fase = obter_dificuldade(estado.pontos)["nome"]
     desenhar_texto(tela, fonte, f"Pontos: {estado.pontos}", PRETO, 20, 20)
     desenhar_texto(tela, fonte, "Vidas:", PRETO, 190, 20)
     desenhar_vidas(tela, estado.vidas, 265, 32)
     desenhar_texto(tela, fonte, f"Tempo: {estado.tempo_restante}", PRETO, 330, 20)
     desenhar_texto(tela, fonte, f"Recorde: {recorde} pts", PRETO, 500, 20)
-    desenhar_texto(tela, fonte, f"Nivel: {nivel}", AZUL, 20, 55)
+    desenhar_texto(tela, fonte, f"Nivel: {nivel} | Fase: {fase}", AZUL, 20, 55)
 
 
 def desenhar_tela_final(tela, fonte_grande, fonte, estado):
@@ -143,6 +165,7 @@ def reiniciar_partida(estado, agora):
     estado.vidas = VIDAS_INICIAIS
     estado.tempo_restante = TEMPO_LIMITE
     estado.inicio = agora
+    estado.ultimo_frame = agora
     estado.tela = "jogo"
     estado.mensagem = ""
     estado.alvo = criar_alvo(estado.pontos, agora)
@@ -165,9 +188,23 @@ def verificar_fim_da_partida(vidas, tempo_restante):
     return ""
 
 
-def atualizar_item(item, agora):
+def obter_circulos_ocupados(estado, ignorar=None):
+    """Monta a lista de circulos visiveis para evitar sobreposicoes."""
+    ocupados = []
+    if ignorar != "alvo":
+        ocupados.append(
+            (estado.alvo.x, estado.alvo.y, obter_raio_alvo(estado.alvo.tamanho))
+        )
+    if estado.coracao.ativo and ignorar != "coracao":
+        ocupados.append((estado.coracao.x, estado.coracao.y, RAIO_ITEM))
+    if estado.ampulheta.ativo and ignorar != "ampulheta":
+        ocupados.append((estado.ampulheta.x, estado.ampulheta.y, RAIO_ITEM))
+    return ocupados
+
+
+def atualizar_item(item, agora, ocupados):
     if not item.ativo and agora >= item.proximo_surgimento:
-        x, y = criar_posicao_item()
+        x, y = criar_posicao_item(ocupados)
         item.ativar(x, y, agora)
     elif item.ativo and item_expirou(item.surgiu_em, agora, DURACAO_ITEM):
         item.desativar()
@@ -181,6 +218,54 @@ def agendar_proximo_item(item, agora):
     item.proximo_surgimento = agora + (
         sortear_proximo_intervalo(INTERVALO_ITEM_MIN, INTERVALO_ITEM_MAX) * 1000
     )
+
+
+def criar_novo_alvo(estado, agora):
+    estado.alvo = criar_alvo(
+        estado.pontos,
+        agora,
+        obter_circulos_ocupados(estado, ignorar="alvo"),
+    )
+
+
+def atualizar_movimento_alvo(estado, delta_segundos):
+    alvo = estado.alvo
+    if alvo.velocidade_x == 0 and alvo.velocidade_y == 0:
+        return
+
+    raio = obter_raio_alvo(alvo.tamanho)
+    novo_x = alvo.x + alvo.velocidade_x * delta_segundos
+    novo_y = alvo.y + alvo.velocidade_y * delta_segundos
+
+    if novo_x - raio < 10 or novo_x + raio > LARGURA_TELA - 10:
+        alvo.velocidade_x *= -1
+        novo_x = alvo.x + alvo.velocidade_x * delta_segundos
+
+    if novo_y - raio < ALTURA_HUD or novo_y + raio > ALTURA_TELA - 10:
+        alvo.velocidade_y *= -1
+        novo_y = alvo.y + alvo.velocidade_y * delta_segundos
+
+    itens = obter_circulos_ocupados(estado, ignorar="alvo")
+    sobrepoe_item = any(
+        (novo_x - x) ** 2 + (novo_y - y) ** 2
+        < (raio + outro_raio + MARGEM_ENTRE_ELEMENTOS) ** 2
+        for x, y, outro_raio in itens
+    )
+    if sobrepoe_item:
+        alvo.velocidade_x *= -1
+        alvo.velocidade_y *= -1
+        return
+
+    alvo.x = novo_x
+    alvo.y = novo_y
+
+
+def atualizar_alvo_expirado(estado, agora):
+    duracao = obter_dificuldade(estado.pontos)["duracao_alvo"]
+    if alvo_expirou(estado.alvo.surgiu_em, agora, duracao):
+        estado.vidas = tomar_dano(estado.vidas, 1)
+        estado.estatisticas.alvos_perdidos += 1
+        criar_novo_alvo(estado, agora)
 
 
 def processar_clique(estado, posicao, agora):
@@ -205,7 +290,7 @@ def processar_clique(estado, posicao, agora):
             estado.pontos, obter_pontos_alvo(estado.alvo.tamanho)
         )
         estado.estatisticas.acertos += 1
-        estado.alvo = criar_alvo(estado.pontos, agora)
+        criar_novo_alvo(estado, agora)
     else:
         estado.vidas = tomar_dano(estado.vidas, 1)
         estado.estatisticas.erros += 1
@@ -230,12 +315,24 @@ def executar_jogo():
         agora = pygame.time.get_ticks()
 
         if estado.tela == "jogo":
+            delta_segundos = max(0, agora - estado.ultimo_frame) / 1000
+            estado.ultimo_frame = agora
             segundos_passados = (agora - estado.inicio) // 1000
             estado.tempo_restante = calcular_tempo_restante(
                 TEMPO_LIMITE, segundos_passados
             )
-            atualizar_item(estado.coracao, agora)
-            atualizar_item(estado.ampulheta, agora)
+            atualizar_movimento_alvo(estado, delta_segundos)
+            atualizar_alvo_expirado(estado, agora)
+            atualizar_item(
+                estado.coracao,
+                agora,
+                obter_circulos_ocupados(estado, ignorar="coracao"),
+            )
+            atualizar_item(
+                estado.ampulheta,
+                agora,
+                obter_circulos_ocupados(estado, ignorar="ampulheta"),
+            )
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -252,6 +349,12 @@ def executar_jogo():
                     processar_clique(estado, evento.pos, agora)
 
         if estado.tela == "jogo":
+            # Recalcula depois dos eventos para que uma ampulheta coletada no
+            # ultimo instante realmente evite o encerramento da partida.
+            segundos_passados = (agora - estado.inicio) // 1000
+            estado.tempo_restante = calcular_tempo_restante(
+                TEMPO_LIMITE, segundos_passados
+            )
             mensagem_fim = verificar_fim_da_partida(
                 estado.vidas, estado.tempo_restante
             )

@@ -38,6 +38,7 @@ class ItemEspecial:
 class Estatisticas:
     acertos: int = 0
     erros: int = 0
+    alvos_perdidos: int = 0
     coracoes: int = 0
     ampulhetas: int = 0
 
@@ -59,10 +60,10 @@ class EstadoJogo:
     vidas: int = VIDAS_INICIAIS
     tempo_restante: int = TEMPO_LIMITE
     inicio: int = 0
+    ultimo_frame: int = 0
     tela: str = "inicio"
     mensagem: str = ""
     alvo: Alvo = field(default_factory=Alvo)
     coracao: ItemEspecial = field(default_factory=ItemEspecial)
     ampulheta: ItemEspecial = field(default_factory=ItemEspecial)
     estatisticas: Estatisticas = field(default_factory=Estatisticas)
-
