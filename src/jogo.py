@@ -10,6 +10,7 @@ from src.config import (
     AZUL,
     BONUS_TEMPO,
     BRANCO,
+    CAMINHO_RANKING,
     CAMINHO_RECORDE,
     CINZA,
     DURACAO_ITEM,
@@ -18,6 +19,8 @@ from src.config import (
     INTERVALO_ITEM_MIN,
     LARANJA,
     LARGURA_TELA,
+    LIMITE_NOME_JOGADOR,
+    LIMITE_RANKING,
     MARGEM_ENTRE_ELEMENTOS,
     PRETO,
     RAIO_ITEM,
@@ -28,7 +31,14 @@ from src.config import (
     VERMELHO_ESCURO,
     VIDAS_INICIAIS,
 )
-from src.dados import carregar_recorde, salvar_recorde
+from src.dados import (
+    carregar_ranking,
+    carregar_recorde,
+    obter_jogadores_salvos,
+    registrar_pontuacao,
+    salvar_ranking,
+    salvar_recorde,
+)
 from src.estado import Alvo, EstadoJogo, Estatisticas
 from src.funcoes import (
     atualizar_recorde,
@@ -117,17 +127,65 @@ def desenhar_ampulheta(tela, x, y):
     pygame.draw.line(tela, LARANJA, (x - raio, y + raio), (x + raio, y + raio), 3)
 
 
-def desenhar_tela_inicial(tela, fonte_grande, fonte, botao_iniciar):
-    desenhar_texto_centralizado(tela, fonte_grande, "Alvo Relampago", VERMELHO_ESCURO, 140)
+def criar_botoes_jogadores(ranking):
+    """Cria botoes para selecionar nomes que ja aparecem no ranking."""
+    botoes = []
+    nomes = obter_jogadores_salvos(ranking)
+    largura = 130
+    espacamento = 10
+    largura_total = len(nomes) * largura + max(0, len(nomes) - 1) * espacamento
+    inicio_x = (LARGURA_TELA - largura_total) // 2
+
+    for indice, nome in enumerate(nomes):
+        retangulo = pygame.Rect(
+            inicio_x + indice * (largura + espacamento), 455, largura, 38
+        )
+        botoes.append((retangulo, nome))
+
+    return botoes
+
+
+def desenhar_tela_inicial(
+    tela,
+    fonte_grande,
+    fonte,
+    fonte_pequena,
+    botao_iniciar,
+    campo_nome,
+    nome_jogador,
+    botoes_jogadores,
+):
+    desenhar_texto_centralizado(
+        tela, fonte_grande, "Alvo Relampago", VERMELHO_ESCURO, 80
+    )
+    desenhar_texto_centralizado(tela, fonte, "Digite seu nome:", PRETO, 155)
+    pygame.draw.rect(tela, BRANCO, campo_nome, border_radius=6)
+    pygame.draw.rect(tela, AZUL, campo_nome, 3, border_radius=6)
+    texto_nome = nome_jogador or "Novo jogador"
+    cor_nome = PRETO if nome_jogador else (120, 120, 120)
+    desenhar_texto(
+        tela, fonte, texto_nome, cor_nome, campo_nome.x + 12, campo_nome.y + 9
+    )
+
     pygame.draw.rect(tela, AZUL, botao_iniciar, border_radius=8)
     pygame.draw.rect(tela, PRETO, botao_iniciar, 3, border_radius=8)
-    desenhar_texto_centralizado(tela, fonte, "Iniciar", BRANCO, 268)
+    desenhar_texto_centralizado(tela, fonte, "Iniciar", BRANCO, 278)
     desenhar_texto_centralizado(
-        tela, fonte, "Clique no alvo ate o tempo acabar.", PRETO, 360
+        tela, fonte_pequena, "Clique nos alvos antes que desaparecam.", PRETO, 355
     )
     desenhar_texto_centralizado(
-        tela, fonte, "Tente conseguir o maximo de pontos possivel.", PRETO, 400
+        tela, fonte_pequena, "Clique fora do alvo e voce perde uma vida.", PRETO, 382
     )
+
+    if botoes_jogadores:
+        desenhar_texto_centralizado(
+            tela, fonte_pequena, "Ou selecione um jogador salvo:", AZUL, 420
+        )
+        for retangulo, nome in botoes_jogadores:
+            pygame.draw.rect(tela, BRANCO, retangulo, border_radius=6)
+            pygame.draw.rect(tela, AZUL, retangulo, 2, border_radius=6)
+            imagem = fonte_pequena.render(nome[:12], True, PRETO)
+            tela.blit(imagem, imagem.get_rect(center=retangulo.center))
 
 
 def desenhar_vidas(tela, vidas, x, y):
@@ -146,18 +204,32 @@ def desenhar_informacoes(tela, fonte, estado, recorde):
     desenhar_texto(tela, fonte, f"Nivel: {nivel} | Fase: {fase}", AZUL, 20, 55)
 
 
-def desenhar_tela_final(tela, fonte_grande, fonte, estado):
-    desenhar_texto_centralizado(tela, fonte_grande, estado.mensagem, VERMELHO_ESCURO, 235)
+def desenhar_ranking(tela, fonte_pequena, ranking, y_inicial):
+    desenhar_texto_centralizado(tela, fonte_pequena, "TOP 5", AZUL, y_inicial)
+    for indice, resultado in enumerate(ranking, start=1):
+        texto = f"{indice}. {resultado['nome']} - {resultado['pontos']} pts"
+        desenhar_texto_centralizado(
+            tela, fonte_pequena, texto, PRETO, y_inicial + indice * 28
+        )
+
+
+def desenhar_tela_final(tela, fonte_grande, fonte, fonte_pequena, estado, ranking):
     desenhar_texto_centralizado(
-        tela, fonte, f"Pontuacao final: {estado.pontos}", PRETO, 305
+        tela, fonte_grande, estado.mensagem, VERMELHO_ESCURO, 145
     )
     desenhar_texto_centralizado(
-        tela, fonte, f"Nivel final: {calcular_nivel(estado.pontos)}", PRETO, 345
+        tela, fonte, estado.nome_jogador, AZUL, 205
     )
     desenhar_texto_centralizado(
-        tela, fonte, "Pressione ESPACO para jogar novamente", AZUL, 390
+        tela, fonte, f"Pontuacao final: {estado.pontos}", PRETO, 245
     )
-    desenhar_texto_centralizado(tela, fonte, "Pressione ESC para sair", AZUL, 430)
+    desenhar_texto_centralizado(
+        tela, fonte, f"Nivel final: {calcular_nivel(estado.pontos)}", PRETO, 280
+    )
+    desenhar_ranking(tela, fonte_pequena, ranking, 325)
+    desenhar_texto_centralizado(
+        tela, fonte_pequena, "ESPACO: jogar novamente | ESC: sair", AZUL, 535
+    )
 
 
 def reiniciar_partida(estado, agora):
@@ -168,6 +240,7 @@ def reiniciar_partida(estado, agora):
     estado.ultimo_frame = agora
     estado.tela = "jogo"
     estado.mensagem = ""
+    estado.resultado_salvo = False
     estado.alvo = criar_alvo(estado.pontos, agora)
     estado.coracao.desativar()
     estado.ampulheta.desativar()
@@ -303,11 +376,14 @@ def executar_jogo():
     relogio = pygame.time.Clock()
     fonte = pygame.font.SysFont("arial", 28)
     fonte_grande = pygame.font.SysFont("arial", 48, bold=True)
+    fonte_pequena = pygame.font.SysFont("arial", 20)
 
     recorde = carregar_recorde(CAMINHO_RECORDE)
+    ranking = carregar_ranking(CAMINHO_RANKING)
     estado = EstadoJogo()
     estado.alvo = criar_alvo(0)
-    botao_iniciar = pygame.Rect(300, 250, 200, 70)
+    botao_iniciar = pygame.Rect(300, 260, 200, 70)
+    campo_nome = pygame.Rect(250, 195, 300, 52)
     rodando = True
 
     while rodando:
@@ -340,11 +416,28 @@ def executar_jogo():
             elif evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_ESCAPE:
                     rodando = False
+                elif estado.tela == "inicio":
+                    if evento.key == pygame.K_RETURN:
+                        estado.nome_jogador = estado.nome_jogador.strip() or "Jogador"
+                        reiniciar_partida(estado, agora)
+                    elif evento.key == pygame.K_BACKSPACE:
+                        estado.nome_jogador = estado.nome_jogador[:-1]
+                    elif (
+                        evento.unicode.isprintable()
+                        and len(estado.nome_jogador) < LIMITE_NOME_JOGADOR
+                    ):
+                        estado.nome_jogador += evento.unicode
                 elif evento.key == pygame.K_SPACE and estado.tela != "jogo":
                     reiniciar_partida(estado, agora)
             elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
                 if estado.tela == "inicio" and botao_iniciar.collidepoint(evento.pos):
+                    estado.nome_jogador = estado.nome_jogador.strip() or "Jogador"
                     reiniciar_partida(estado, agora)
+                elif estado.tela == "inicio":
+                    for retangulo, nome in criar_botoes_jogadores(ranking):
+                        if retangulo.collidepoint(evento.pos):
+                            estado.nome_jogador = nome
+                            break
                 elif estado.tela == "jogo":
                     processar_clique(estado, evento.pos, agora)
 
@@ -362,6 +455,16 @@ def executar_jogo():
                 estado.tela = "fim"
                 estado.mensagem = mensagem_fim
 
+            if estado.tela == "fim" and not estado.resultado_salvo:
+                ranking = registrar_pontuacao(
+                    ranking,
+                    estado.nome_jogador,
+                    estado.pontos,
+                    LIMITE_RANKING,
+                )
+                salvar_ranking(CAMINHO_RANKING, ranking)
+                estado.resultado_salvo = True
+
             novo_recorde = atualizar_recorde(estado.pontos, recorde)
             if novo_recorde != recorde:
                 recorde = novo_recorde
@@ -369,7 +472,17 @@ def executar_jogo():
 
         tela.fill(CINZA)
         if estado.tela == "inicio":
-            desenhar_tela_inicial(tela, fonte_grande, fonte, botao_iniciar)
+            botoes_jogadores = criar_botoes_jogadores(ranking)
+            desenhar_tela_inicial(
+                tela,
+                fonte_grande,
+                fonte,
+                fonte_pequena,
+                botao_iniciar,
+                campo_nome,
+                estado.nome_jogador,
+                botoes_jogadores,
+            )
         else:
             desenhar_informacoes(tela, fonte, estado, recorde)
             if estado.tela == "jogo":
@@ -379,7 +492,9 @@ def executar_jogo():
                 if estado.ampulheta.ativo:
                     desenhar_ampulheta(tela, estado.ampulheta.x, estado.ampulheta.y)
             else:
-                desenhar_tela_final(tela, fonte_grande, fonte, estado)
+                desenhar_tela_final(
+                    tela, fonte_grande, fonte, fonte_pequena, estado, ranking
+                )
 
         pygame.display.flip()
 

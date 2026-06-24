@@ -56,6 +56,7 @@ class Estatisticas:
 
 @dataclass
 class EstadoJogo:
+    nome_jogador: str = ""
     pontos: int = 0
     vidas: int = VIDAS_INICIAIS
     tempo_restante: int = TEMPO_LIMITE
@@ -63,6 +64,7 @@ class EstadoJogo:
     ultimo_frame: int = 0
     tela: str = "inicio"
     mensagem: str = ""
+    resultado_salvo: bool = False
     alvo: Alvo = field(default_factory=Alvo)
     coracao: ItemEspecial = field(default_factory=ItemEspecial)
     ampulheta: ItemEspecial = field(default_factory=ItemEspecial)
