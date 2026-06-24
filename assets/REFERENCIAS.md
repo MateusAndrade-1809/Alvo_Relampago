@@ -6,8 +6,6 @@ O jogo Alvo Relampago usa formas simples desenhadas diretamente pelo Pygame, com
 
 Nenhuma imagem externa e usada na versao final do jogo.
 
-O arquivo `assets/imagens/spritesheet.bmp` veio junto com o template oficial da disciplina, mas nao e utilizado pelo jogo final.
-
 ## Sons
 
 Nenhum som externo e usado na versao final do jogo.
